@@ -1,15 +1,21 @@
 import { SourceFile } from "ts-morph";
 import { buildComment } from "./buildComment";
 
+interface SuppressTsErrorArgs {
+  sourceFile: SourceFile;
+  commentType: CommentType;
+  withErrorCode: boolean;
+  message: string;
+  errorCodeFilter?: number[];
+}
+
 export const suppressTsErrors = ({
   sourceFile,
   commentType,
   withErrorCode,
-}: {
-  sourceFile: SourceFile;
-  commentType: CommentType;
-  withErrorCode: boolean;
-}): {
+  message,
+  errorCodeFilter,
+}: SuppressTsErrorArgs): {
   text: string;
   count: number;
 } => {
@@ -31,6 +37,13 @@ export const suppressTsErrors = ({
       return;
     }
 
+    if (
+      errorCodeFilter !== undefined &&
+      !errorCodeFilter.includes(d.getCode())
+    ) {
+      return;
+    }
+
     // Build comments with indentation matching the error location
     const insertComment = buildComment({
       sourceFile,
@@ -38,13 +51,14 @@ export const suppressTsErrors = ({
       commentType: commentType,
       errorCode: d.getCode(),
       withErrorCode: withErrorCode,
+      message: message,
     });
 
     // Insert comment
     sourceTextArray.splice(
       lineNumber + insertedCommentCount - 1,
       0,
-      insertComment
+      insertComment,
     );
 
     // Increment comment counts

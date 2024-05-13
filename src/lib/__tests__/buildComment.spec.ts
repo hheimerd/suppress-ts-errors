@@ -14,6 +14,7 @@ describe("buildComment", () => {
       `,
     fileName: "test.ts",
     lineNumber: 2,
+    message: "",
     commentType: 1,
     errorCode: 2322,
     withErrorCode: true,
@@ -31,9 +32,22 @@ describe("buildComment", () => {
     },
     {
       ...baseParam,
+      message: "test message",
+      commentType: 2,
+      expected: "        // @ts-ignore TS2322 -- test message",
+    },
+    {
+      ...baseParam,
       commentType: 2,
       withErrorCode: false,
       expected: "        // @ts-ignore",
+    },
+    {
+      ...baseParam,
+      commentType: 2,
+      message: "test message",
+      withErrorCode: false,
+      expected: "        // @ts-ignore -- test message",
     },
     {
       ...baseParam,
@@ -85,7 +99,24 @@ describe("buildComment", () => {
       }
       `,
       lineNumber: 5,
-      expected: "            {/*\n             // @ts-expect-error TS2322 */}",
+      expected: "            {/* @ts-expect-error TS2322 */}",
+    },
+    {
+      ...baseParam,
+      fileName: "target.tsx",
+      message: "test message",
+      source: `
+      function tsxFunc(num: number) {
+        return (
+          <div>
+            <div>{num.map(n => n)}</div>
+            <div>foo</div>
+          </div>
+        )
+      }
+    `,
+      lineNumber: 5,
+      expected: "            {/* @ts-expect-error TS2322 -- test message */}",
     },
     {
       ...baseParam,
@@ -101,7 +132,7 @@ describe("buildComment", () => {
       }
       `,
       lineNumber: 6,
-      expected: "            {/*\n             // @ts-expect-error TS2322 */}",
+      expected: "            {/* @ts-expect-error TS2322 */}",
     },
     {
       ...baseParam,
@@ -149,7 +180,7 @@ function tsxFunc(num: number) {
 }
 `,
       lineNumber: 6,
-      expected: "        {/*\n         // @ts-expect-error TS2322 */}",
+      expected: "        {/* @ts-expect-error TS2322 */}",
     },
   ])(
     "build comment",
@@ -161,6 +192,7 @@ function tsxFunc(num: number) {
       errorCode,
       withErrorCode,
       expected,
+      message,
     }) => {
       const sourceFile = project.createSourceFile(fileName, source, {
         overwrite: true,
@@ -171,9 +203,10 @@ function tsxFunc(num: number) {
         commentType,
         errorCode,
         withErrorCode,
+        message,
       });
 
       expect(result).toBe(expected);
-    }
+    },
   );
 });

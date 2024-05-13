@@ -3,7 +3,7 @@ import { COMMENT_TYPE } from "./constants";
 
 const getWhiteSpaceCountFromLineNumber = (
   sourceFile: SourceFile,
-  lineNumber: number
+  lineNumber: number,
 ): number => {
   const targetLineString = sourceFile.getFullText().split("\n")[lineNumber - 1];
   return targetLineString.search(/\S/);
@@ -11,7 +11,7 @@ const getWhiteSpaceCountFromLineNumber = (
 
 function isSomKindOfJsxAtLine(
   sourceFile: SourceFile,
-  lineNumber: number
+  lineNumber: number,
 ): boolean {
   const targetNode = sourceFile.getDescendants().find((node) => {
     return lineNumber === node.getStartLineNumber();
@@ -30,8 +30,9 @@ function isSomKindOfJsxAtLine(
 
   const isInnerJsxElement =
     targetNode?.getPreviousSibling()?.getKind() ===
-    ts.SyntaxKind.JsxOpeningElement || targetNode?.getPreviousSibling()?.getKind() ===
-    ts.SyntaxKind.JsxOpeningFragment;
+      ts.SyntaxKind.JsxOpeningElement ||
+    targetNode?.getPreviousSibling()?.getKind() ===
+      ts.SyntaxKind.JsxOpeningFragment;
   const isJsxElement = [
     ts.SyntaxKind.JsxText,
     ts.SyntaxKind.JsxTextAllWhiteSpaces,
@@ -52,31 +53,32 @@ function isSomKindOfJsxAtLine(
   return (isJsxElement && !isJsxStartOpeningElement) || isInnerJsxElement;
 }
 
+interface BuiltCommentArgs {
+  sourceFile: SourceFile;
+  lineNumber: number;
+  commentType: number;
+  errorCode: number;
+  withErrorCode: boolean;
+  message?: string;
+}
+
 export const buildComment = ({
   sourceFile,
   lineNumber,
   commentType,
   errorCode,
   withErrorCode,
-}: {
-  sourceFile: SourceFile;
-  lineNumber: number;
-  commentType: number;
-  errorCode: number;
-  withErrorCode: boolean;
-}): string => {
+  message = "",
+}: BuiltCommentArgs): string => {
   const comment =
     commentType === 1 ? COMMENT_TYPE.EXPECT_ERROR : COMMENT_TYPE.IGNORE;
   const whiteSpaceCount = getWhiteSpaceCountFromLineNumber(
     sourceFile,
-    lineNumber
+    lineNumber,
   );
-  sourceFile;
+
+  const commentMessage = message ? ` -- ${message}` : "";
   return isSomKindOfJsxAtLine(sourceFile, lineNumber)
-    ? `${" ".repeat(whiteSpaceCount)}{/*\n${" ".repeat(
-        whiteSpaceCount + 1
-      )}// ${comment}${withErrorCode ? ` TS${errorCode}` : ""} */}`
-    : `${" ".repeat(whiteSpaceCount)}// ${comment}${
-        withErrorCode ? ` TS${errorCode}` : ""
-      }`;
+    ? `${" ".repeat(whiteSpaceCount)}{/* ${comment}${withErrorCode ? ` TS${errorCode}` : ""}${commentMessage} */}`
+    : `${" ".repeat(whiteSpaceCount)}// ${comment}${withErrorCode ? ` TS${errorCode}` : ""}${commentMessage}`;
 };

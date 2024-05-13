@@ -25,18 +25,31 @@ export const builder = (yargs: Argv<Options>): Argv<Options> =>
     .check(isVueFiles);
 
 export const handler = async (argv: Arguments<Options>): Promise<void> => {
-  const { targetFilePaths, tsconfigPath, commentType, errorCode } = argv;
+  const {
+    targetFilePaths,
+    tsconfigPath,
+    commentType,
+    errorCode,
+    pathToSource,
+    message,
+    errorCodeFilter,
+  } = argv;
 
   const insertedCommentCount = await vueHandler({
     targetFilePaths,
     tsconfigPath,
     commentType,
     errorCode,
+    message,
+    pathToSource,
+    errorCodeFilter: errorCodeFilter?.filter(
+      (code) => !Number.isNaN(Number(code)),
+    ),
   });
 
   console.log("\nCompleted 🎉");
   console.log(
-    "suppress errors: " + colors.green(insertedCommentCount.toString())
+    "suppress errors: " + colors.green(insertedCommentCount.toString()),
   );
   process.exit(0);
 };

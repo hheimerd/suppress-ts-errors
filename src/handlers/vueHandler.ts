@@ -4,12 +4,16 @@ import { Project } from "ts-morph";
 import { extractTypeScriptFromVue } from "../lib/extractTypeScriptFromVue";
 import { generateProgressBar } from "../lib/progressBar";
 import { suppressTsErrors } from "../lib/suppressTsErrors";
+import path from "node:path";
 
 export const vueHandler = async ({
   tsconfigPath,
   commentType,
   errorCode,
   targetFilePaths,
+  pathToSource,
+  message,
+  errorCodeFilter,
 }: DefaultOptions & {
   targetFilePaths: string[];
 }): Promise<number> => {
@@ -23,11 +27,18 @@ export const vueHandler = async ({
         fullText,
         script,
       };
-    })
+    }),
   );
 
-  // Filter only files with script
-  const targetFiles = allFiles.filter((file) => file.script !== "");
+  if (errorCodeFilter) {
+    console.log(`Suppressing only ${errorCodeFilter} codes`);
+  }
+
+  // Filter only files with script and in source directory
+  const grepPath = path.resolve(pathToSource);
+  const targetFiles = allFiles.filter(
+    (file) => file.script !== "" && file.path.startsWith(grepPath),
+  );
 
   // Start progress bar
   const progressBar = generateProgressBar(colors.green);
@@ -52,6 +63,8 @@ export const vueHandler = async ({
       sourceFile: file.sourceFile,
       commentType,
       withErrorCode: errorCode,
+      message,
+      errorCodeFilter,
     });
 
     const newText = file.fullText.replace(file.script, scriptWithComment);

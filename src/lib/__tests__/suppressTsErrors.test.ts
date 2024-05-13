@@ -74,6 +74,26 @@ describe("suppressTsErrors", () => {
     },
     {
       text: `
+        const func = (num: number) => num
+        func('a')
+
+        let a: string = 1;
+      `,
+      fileName: "target.ts",
+      commentType: 1,
+      withErrorCode: true,
+      errorCodeFilter: [2345],
+      expectedText: `
+        const func = (num: number) => num
+        // @ts-expect-error TS2345
+        func('a')
+
+        let a: string = 1;
+      `,
+      expectedCommentCount: 1,
+    },
+    {
+      text: `
         const func = (num: number) => {
           return num.map(r => 1)
         }
@@ -163,11 +183,9 @@ describe("suppressTsErrors", () => {
           return (
             // @ts-expect-error TS2322
             <div id={1}>
-              {/*
-               // @ts-expect-error TS2339 */}
+              {/* @ts-expect-error TS2339 */}
               <div>{num.map(n => n)}</div>
-              {/*
-               // @ts-expect-error TS2339 */}
+              {/* @ts-expect-error TS2339 */}
               <div>{num.map(n => n)}</div>
             </div>
           )
@@ -257,6 +275,7 @@ describe("suppressTsErrors", () => {
       withErrorCode,
       expectedText,
       expectedCommentCount,
+      errorCodeFilter,
     }) => {
       const sourceFile = project.createSourceFile(fileName, text, {
         overwrite: true,
@@ -266,10 +285,12 @@ describe("suppressTsErrors", () => {
         sourceFile,
         commentType: commentType as CommentType,
         withErrorCode,
+        message: "",
+        errorCodeFilter,
       });
 
       expect(result.text).toBe(expectedText);
       expect(result.count).toBe(expectedCommentCount);
-    }
+    },
   );
 });

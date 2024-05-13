@@ -10,12 +10,24 @@ export const builder = (yargs: Argv<DefaultOptions>): Argv<DefaultOptions> =>
   yargs.options(DEFAULT_OPTIONS).check(tsconfigExists);
 
 export const handler = (argv: Arguments<DefaultOptions>): void => {
-  const { commentType, tsconfigPath, errorCode } = argv;
+  const {
+    commentType,
+    tsconfigPath,
+    errorCode,
+    pathToSource,
+    message,
+    errorCodeFilter,
+  } = argv;
 
   const insertedCommentCount = tsHandler({
     tsconfigPath,
     commentType,
     errorCode,
+    pathToSource,
+    message,
+    errorCodeFilter: errorCodeFilter?.filter(
+      (code) => !Number.isNaN(Number(code)),
+    ),
   });
 
   console.log("\nCompleted 🎉");

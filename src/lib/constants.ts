@@ -26,4 +26,25 @@ export const DEFAULT_OPTIONS = {
     describe: "Add error code to comment. e.g. TS2345.",
     requiresArg: true,
   },
+  "error-code-filter": {
+    type: "array",
+    alias: "ef",
+    describe:
+      "Comment only specified error code number. e.g. --ef 2345 or --ef 2345 2322",
+    requiresArg: false,
+  },
+  "path-to-source": {
+    type: "string",
+    default: "./src",
+    alias: "s",
+    describe: "Path to source, where comments needed. e.g. src/",
+    requiresArg: true,
+  },
+  message: {
+    type: "string",
+    default: "",
+    alias: "m",
+    describe: "Message after comment",
+    requiresArg: true,
+  },
 } as const;
